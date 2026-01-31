@@ -1,9 +1,12 @@
 services:
   - type: web
-    name: nissy-web
-    runtime: docker
+    name: nissyonline
+    runtime: node
     plan: free
-    dockerfilePath: ./Dockerfile
+    buildCommand: bash build.sh
+    startCommand: node server.js
     envVars:
+      - key: NISSY_PATH
+        value: /opt/render/project/src/nissy
       - key: PORT
-        value: 3000
+        value: 10000
