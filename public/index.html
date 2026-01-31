@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nissy Web</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+  header {
+    background: #16213e;
+    padding: 1rem 2rem;
+    border-bottom: 2px solid #0f3460;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  header h1 { font-size: 1.5rem; color: #e94560; }
+  header span { color: #888; font-size: 0.9rem; }
+
+  .tabs {
+    display: flex;
+    background: #16213e;
+    border-bottom: 1px solid #0f3460;
+  }
+  .tab {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #888;
+    font-size: 0.95rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab:hover { color: #ccc; }
+  .tab.active { color: #e94560; border-bottom-color: #e94560; }
+
+  main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  label { display: block; margin-bottom: 0.3rem; color: #aaa; font-size: 0.85rem; }
+  input, select, textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: #0a0a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #e94560;
+  }
+  select option { background: #0a0a1a; }
+
+  .field-row { display: flex; gap: 1rem; align-items: flex-end; }
+  .field-row > * { flex: 1; }
+
+  button {
+    padding: 0.6rem 1.2rem;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  button:hover { background: #c73652; }
+  button:disabled { background: #555; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: #0f3460;
+  }
+  .btn-secondary:hover { background: #1a4a7a; }
+
+  .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+  .result-box {
+    background: #0a0a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    min-height: 60px;
+    white-space: pre-wrap;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+  .result-box.error { border-color: #e94560; color: #e94560; }
+  .result-box .placeholder { color: #555; font-style: italic; }
+
+  .cube-state {
+    background: #0a0a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #555;
+    border-top-color: #e94560;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 { color: #e94560; margin-bottom: 0.75rem; font-size: 1rem; }
+
+  .options-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .options-row > div { flex: 1; min-width: 120px; }
+
+  .count-input {
+    width: 80px;
+    display: inline-block;
+    margin-bottom: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nissy Web</h1>
+  <span>Rubik's Cube Solver</span>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="solve">Solve</button>
+  <button class="tab" data-tab="scramble">Scramble</button>
+  <button class="tab" data-tab="tools">Tools</button>
+</div>
+
+<main>
+  <!-- SOLVE TAB -->
+  <div class="panel active" id="panel-solve">
+    <div class="section">
+      <div class="field-row">
+        <div>
+          <label for="solve-step">Step</label>
+          <select id="solve-step">
+            <option value="">Loading steps...</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="solve-scramble">Scramble</label>
+      <input type="text" id="solve-scramble" placeholder="e.g. R U R' U' F R2 D' B">
+
+      <div class="options-row">
+        <div>
+          <label for="solve-max">Max moves (-M)</label>
+          <input type="number" id="solve-max" min="0" max="30" value="" placeholder="auto">
+        </div>
+        <div>
+          <label for="solve-sols">Solutions (-n)</label>
+          <input type="number" id="solve-sols" min="1" max="100" value="1">
+        </div>
+        <div>
+          <label for="solve-optimal">Optimal (-o)</label>
+          <input type="number" id="solve-optimal" min="0" max="10" value="" placeholder="off">
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;padding-top:1.1rem;margin-bottom:1rem;">
+        <input type="checkbox" id="solve-inverse" style="width:auto;margin:0 0.4rem 0 0;">
+        <label for="solve-inverse" style="margin:0;cursor:pointer;">Inverse (-N)</label>
+      </div>
+
+      <div class="btn-group">
+        <button id="btn-solve">Solve</button>
+        <button id="btn-print-solve" class="btn-secondary">Show Cube State</button>
+      </div>
+
+      <div id="solve-result" class="result-box">
+        <span class="placeholder">Results will appear here</span>
+      </div>
+      <div id="solve-cube" class="cube-state" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- SCRAMBLE TAB -->
+  <div class="panel" id="panel-scramble">
+    <div class="section">
+      <label for="scramble-type">Type</label>
+      <select id="scramble-type">
+        <option value="">Random state (default)</option>
+        <option value="eo">EO on random axis</option>
+        <option value="eofb">EO on F/B</option>
+        <option value="eorl">EO on R/L</option>
+        <option value="eoud">EO on U/D</option>
+        <option value="co">CO on random axis</option>
+        <option value="cofb">CO on F/B</option>
+        <option value="corl">CO on R/L</option>
+        <option value="coud">CO on U/D</option>
+        <option value="dr">DR on random axis</option>
+        <option value="drud">DR on U/D</option>
+        <option value="drrl">DR on R/L</option>
+        <option value="drfb">DR on F/B</option>
+        <option value="htr">HTR</option>
+        <option value="corners">Corners solved</option>
+      </select>
+
+      <label>
+        Count
+        <input type="number" id="scramble-count" class="count-input" min="1" max="100" value="1">
+      </label>
+
+      <button id="btn-scramble">Generate Scramble</button>
+
+      <div id="scramble-result" class="result-box">
+        <span class="placeholder">Generated scrambles will appear here</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLS TAB -->
+  <div class="panel" id="panel-tools">
+    <div class="section">
+      <label for="tools-input">Scramble / Moves</label>
+      <input type="text" id="tools-input" placeholder="e.g. R U R' U'">
+
+      <div class="btn-group">
+        <button data-tool="invert">Invert</button>
+        <button data-tool="cleanup">Cleanup</button>
+        <button data-tool="unniss">Unniss</button>
+        <button data-tool="print" class="btn-secondary">Print Cube State</button>
+      </div>
+
+      <div id="tools-result" class="result-box">
+        <span class="placeholder">Results will appear here</span>
+      </div>
+      <div id="tools-cube" class="cube-state" style="display:none"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// Tabs
+$$('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    $$('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    $(`#panel-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// API helper
+async function api(endpoint, opts = {}) {
+  const isGet = !opts.body;
+  const res = await fetch(`/api/${endpoint}`, {
+    method: isGet ? 'GET' : 'POST',
+    headers: isGet ? {} : { 'Content-Type': 'application/json' },
+    body: isGet ? undefined : JSON.stringify(opts.body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function showResult(el, text, isError = false) {
+  el.textContent = text;
+  el.classList.toggle('error', isError);
+}
+
+function showLoading(el) {
+  el.innerHTML = '<span class="spinner"></span> Working...';
+  el.classList.remove('error');
+}
+
+// Load steps on startup
+async function loadSteps() {
+  try {
+    const data = await api('steps');
+    const sel = $('#solve-step');
+    sel.innerHTML = '';
+    for (const s of data.steps) {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.id} - ${s.description}`;
+      sel.appendChild(opt);
+    }
+  } catch (e) {
+    console.error('Failed to load steps:', e);
+    $('#solve-step').innerHTML = '<option value="eo">eo (fallback)</option>';
+  }
+}
+loadSteps();
+
+// Solve
+$('#btn-solve').addEventListener('click', async () => {
+  const step = $('#solve-step').value;
+  const scramble = $('#solve-scramble').value.trim();
+  if (!scramble) return;
+
+  const resultEl = $('#solve-result');
+  showLoading(resultEl);
+  $('#solve-cube').style.display = 'none';
+
+  try {
+    let options = '';
+    const maxVal = $('#solve-max').value;
+    const solsVal = $('#solve-sols').value;
+    const optVal = $('#solve-optimal').value;
+    if (maxVal) options += `-M ${maxVal} `;
+    if (solsVal && solsVal !== '1') options += `-n ${solsVal} `;
+    if (optVal) options += `-o ${optVal} `;
+    if ($('#solve-inverse').checked) options += `-N `;
+
+    const data = await api('solve', {
+      body: { step, scramble, options: options.trim() }
+    });
+    showResult(resultEl, data.result || '(no solution found)');
+  } catch (e) {
+    showResult(resultEl, e.message, true);
+  }
+});
+
+// Print cube from solve tab
+$('#btn-print-solve').addEventListener('click', async () => {
+  const scramble = $('#solve-scramble').value.trim();
+  if (!scramble) return;
+  const cubeEl = $('#solve-cube');
+  cubeEl.style.display = 'block';
+  cubeEl.textContent = 'Loading...';
+  try {
+    const data = await api('print', { body: { scramble } });
+    cubeEl.textContent = data.result;
+  } catch (e) {
+    cubeEl.textContent = e.message;
+  }
+});
+
+// Scramble
+$('#btn-scramble').addEventListener('click', async () => {
+  const resultEl = $('#scramble-result');
+  showLoading(resultEl);
+  try {
+    const type = $('#scramble-type').value;
+    const count = parseInt($('#scramble-count').value, 10) || 1;
+    const body = { count };
+    if (type) body.type = type;
+    const data = await api('scramble', { body });
+    showResult(resultEl, data.result || '(empty result)');
+  } catch (e) {
+    showResult(resultEl, e.message, true);
+  }
+});
+
+// Tools
+$$('[data-tool]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const tool = btn.dataset.tool;
+    const scramble = $('#tools-input').value.trim();
+    if (!scramble) return;
+
+    const resultEl = $('#tools-result');
+    const cubeEl = $('#tools-cube');
+
+    if (tool === 'print') {
+      cubeEl.style.display = 'block';
+      cubeEl.textContent = 'Loading...';
+      try {
+        const data = await api('print', { body: { scramble } });
+        cubeEl.textContent = data.result;
+      } catch (e) {
+        cubeEl.textContent = e.message;
+      }
+    } else {
+      showLoading(resultEl);
+      cubeEl.style.display = 'none';
+      try {
+        const data = await api(tool, { body: { scramble } });
+        showResult(resultEl, data.result || '(empty result)');
+      } catch (e) {
+        showResult(resultEl, e.message, true);
+      }
+    }
+  });
+});
+
+// Allow Enter key to trigger actions
+$('#solve-scramble').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('#btn-solve').click();
+});
+$('#tools-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('[data-tool="cleanup"]').click();
+});
+</script>
+</body>
+</html>

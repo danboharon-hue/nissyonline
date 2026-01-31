@@ -1,0 +1,12 @@
+{
+  "name": "nissy-web",
+  "version": "1.0.0",
+  "description": "Web interface for the Nissy Rubik's Cube solver",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
