@@ -4,7 +4,7 @@ const path = require('path');
 const { execFile } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
-const NISSY_PATH = process.env.NISSY_PATH || path.join(__dirname, '..', 'Downloads', 'Programs', 'nissy-2.0.8.exe');
+const NISSY_PATH = process.env.NISSY_PATH || path.join(__dirname, 'nissy');
 const TIMEOUT = 30000;
 
 // Only allow safe cube notation characters

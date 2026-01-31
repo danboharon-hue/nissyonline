@@ -7,6 +7,6 @@ services:
     startCommand: node server.js
     envVars:
       - key: NISSY_PATH
-        value: /opt/render/project/src/nissy
+        value: ./nissy
       - key: PORT
         value: 10000
