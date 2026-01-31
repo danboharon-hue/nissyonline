@@ -2,11 +2,17 @@ services:
   - type: web
     name: nissyonline
     runtime: node
-    plan: free
+    plan: starter
     buildCommand: bash build.sh
     startCommand: node server.js
+    disk:
+      name: nissy-tables
+      mountPath: /var/data/nissy
+      sizeGB: 1
     envVars:
       - key: NISSY_PATH
         value: ./nissy
+      - key: NISSYDATA
+        value: /var/data/nissy
       - key: PORT
         value: 10000
