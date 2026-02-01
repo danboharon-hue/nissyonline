@@ -35,16 +35,23 @@ function filterWarnings(text) {
 function runNissy(args) {
   return new Promise((resolve, reject) => {
     execFile(NISSY_PATH, args, { timeout: TIMEOUT }, (err, stdout, stderr) => {
+      // Always check stdout first — nissy may exit non-zero due to
+      // missing optional tables but still produce valid output
+      const out = filterWarnings(stdout || '');
+      if (out) {
+        resolve(out);
+        return;
+      }
       if (err) {
         if (err.killed) {
           reject(new Error('Process timed out'));
         } else {
           const msg = filterWarnings(stderr || err.message);
-          reject(new Error(msg || 'Unknown error'));
+          reject(new Error(msg || 'No solution found'));
         }
         return;
       }
-      resolve(filterWarnings(stdout));
+      resolve('');
     });
   });
 }

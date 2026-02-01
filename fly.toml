@@ -20,6 +20,6 @@ primary_region = 'iad'
   destination = '/data/nissy'
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpu_kind = 'shared'
-  cpus = 1
+  cpus = 2
