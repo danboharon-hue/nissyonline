@@ -344,6 +344,9 @@
       <div class="checkbox-row">
         <input type="checkbox" id="solve-inverse">
         <label for="solve-inverse">Inverse (-N)</label>
+        <span class="hint" id="inverse-hint" style="display:none; color:#e94560; font-size:0.8rem; margin-left:0.5rem;">
+          ⚠ Very slow on DR/HTR steps — may time out
+        </span>
       </div>
 
       <div class="btn-group">
@@ -437,14 +440,25 @@ $$('.tab').forEach(tab => {
 // API helper
 async function api(endpoint, opts = {}) {
   const isGet = !opts.body;
-  const res = await fetch(`/api/${endpoint}`, {
-    method: isGet ? 'GET' : 'POST',
-    headers: isGet ? {} : { 'Content-Type': 'application/json' },
-    body: isGet ? undefined : JSON.stringify(opts.body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
+  const timeout = opts.timeout || 120000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(`/api/${endpoint}`, {
+      method: isGet ? 'GET' : 'POST',
+      headers: isGet ? {} : { 'Content-Type': 'application/json' },
+      body: isGet ? undefined : JSON.stringify(opts.body),
+      signal: controller.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Solve timed out — try without Inverse (-N) or increase Max moves');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function showResult(el, text, isError = false) {
@@ -456,6 +470,16 @@ function showLoading(el) {
   el.innerHTML = '<span class="spinner"></span> Working...';
   el.classList.remove('error');
 }
+
+// Show warning when Inverse is checked with heavy steps
+const SLOW_INVERSE = /^(dr|htr|corners)/;
+function updateInverseHint() {
+  const step = $('#solve-step').value;
+  const checked = $('#solve-inverse').checked;
+  $('#inverse-hint').style.display = (checked && SLOW_INVERSE.test(step)) ? 'inline' : 'none';
+}
+$('#solve-inverse').addEventListener('change', updateInverseHint);
+$('#solve-step').addEventListener('change', updateInverseHint);
 
 // Load steps on startup
 async function loadSteps() {
