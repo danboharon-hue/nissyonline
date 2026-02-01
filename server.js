@@ -69,6 +69,11 @@ async function handleAPI(req, res) {
   const route = url.pathname;
 
   try {
+    if (route === '/api/status' && req.method === 'GET') {
+      sendJSON(res, 200, { tablesReady });
+      return;
+    }
+
     if (route === '/api/steps' && req.method === 'GET') {
       const output = await runNissy(['steps']);
       const steps = output.split('\n')
@@ -191,18 +196,20 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+let tablesReady = false;
+
 // Start server immediately so health checks pass
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Nissy Web running at http://localhost:${PORT}`);
   console.log(`Using executable: ${NISSY_PATH}`);
 
-  // Generate pruning tables in the background (with 4 threads)
+  // Generate pruning tables in the background (with multiple threads)
   console.log('Generating pruning tables in background (this may take a while on first run)...');
-  execFile(NISSY_PATH, ['gen', '-t', '4'], { timeout: 0 }, (err, stdout, stderr) => {
-    if (err) {
-      console.error('Table generation warning:', stderr || err.message);
-    } else {
-      console.log('Pruning tables ready.');
-    }
+  const gen = execFile(NISSY_PATH, ['gen', '-t', '2'], { timeout: 0 });
+  gen.stdout.on('data', (data) => console.log('[gen]', data.toString().trim()));
+  gen.stderr.on('data', (data) => console.log('[gen]', data.toString().trim()));
+  gen.on('close', (code) => {
+    tablesReady = true;
+    console.log(`Pruning table generation finished (exit code ${code}).`);
   });
 });
