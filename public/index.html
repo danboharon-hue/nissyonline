@@ -4,123 +4,255 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nissy Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #1a1a2e;
-    color: #e0e0e0;
-    min-height: 100vh;
-  }
-  header {
-    background: #16213e;
-    padding: 1rem 2rem;
-    border-bottom: 2px solid #0f3460;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  header h1 { font-size: 1.5rem; color: #e94560; }
-  header span { color: #888; font-size: 0.9rem; }
 
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #0f0f17;
+    color: #f0f0f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    padding: 2rem 2rem 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #e94560, #ff6b81);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p {
+    color: #5a5a72;
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
+    font-weight: 400;
+  }
+
+  /* Tabs */
   .tabs {
     display: flex;
-    background: #16213e;
-    border-bottom: 1px solid #0f3460;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1rem 0;
   }
   .tab {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1.25rem;
     cursor: pointer;
-    border: none;
-    background: none;
-    color: #888;
-    font-size: 0.95rem;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #5a5a72;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
   }
-  .tab:hover { color: #ccc; }
-  .tab.active { color: #e94560; border-bottom-color: #e94560; }
+  .tab:hover {
+    color: #9a9ab0;
+    background: rgba(255,255,255,0.03);
+  }
+  .tab.active {
+    color: #f0f0f0;
+    background: rgba(233,69,96,0.1);
+    border-color: rgba(233,69,96,0.2);
+  }
 
-  main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+  /* Layout */
+  main {
+    max-width: 860px;
+    width: 100%;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    flex: 1;
+  }
 
   .panel { display: none; }
   .panel.active { display: block; }
 
-  label { display: block; margin-bottom: 0.3rem; color: #aaa; font-size: 0.85rem; }
+  /* Card */
+  .card {
+    background: rgba(22,22,37,0.8);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  /* Labels */
+  label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #9a9ab0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* Inputs */
   input, select, textarea {
     width: 100%;
-    padding: 0.6rem 0.8rem;
-    background: #0a0a1a;
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #e0e0e0;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(15,15,23,0.8);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: #f0f0f0;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
   }
   input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: #e94560;
+    border-color: rgba(233,69,96,0.5);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), 0 0 0 3px rgba(233,69,96,0.1);
   }
-  select option { background: #0a0a1a; }
+  input::placeholder { color: #3a3a50; }
+  select { cursor: pointer; }
+  select option { background: #161625; }
 
+  /* Checkbox */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #e94560;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .checkbox-row label {
+    margin: 0;
+    text-transform: none;
+    font-size: 0.875rem;
+    color: #9a9ab0;
+    cursor: pointer;
+    letter-spacing: 0;
+  }
+
+  /* Field rows */
   .field-row { display: flex; gap: 1rem; align-items: flex-end; }
   .field-row > * { flex: 1; }
 
+  .options-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+  .options-row > div { flex: 1; min-width: 140px; }
+
+  /* Buttons */
   button {
-    padding: 0.6rem 1.2rem;
-    background: #e94560;
+    padding: 0.7rem 1.5rem;
+    background: linear-gradient(135deg, #e94560, #d63851);
     color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(233,69,96,0.25);
   }
-  button:hover { background: #c73652; }
-  button:disabled { background: #555; cursor: not-allowed; }
+  button:hover {
+    background: linear-gradient(135deg, #ff5a75, #e94560);
+    box-shadow: 0 4px 16px rgba(233,69,96,0.35);
+    transform: translateY(-1px);
+  }
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(233,69,96,0.2);
+  }
+  button:disabled {
+    background: #2a2a3d;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
 
   .btn-secondary {
-    background: #0f3460;
+    background: rgba(255,255,255,0.05);
+    box-shadow: none;
+    border: 1px solid rgba(255,255,255,0.1);
   }
-  .btn-secondary:hover { background: #1a4a7a; }
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    box-shadow: none;
+    border-color: rgba(255,255,255,0.15);
+  }
 
-  .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .btn-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
 
+  /* Result boxes */
   .result-box {
-    background: #0a0a1a;
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-top: 1rem;
-    min-height: 60px;
+    background: rgba(15,15,23,0.8);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 0;
+    min-height: 72px;
     white-space: pre-wrap;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
     overflow-x: auto;
+    color: #c8c8d8;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
   }
-  .result-box.error { border-color: #e94560; color: #e94560; }
-  .result-box .placeholder { color: #555; font-style: italic; }
+  .result-box.error {
+    border-color: rgba(233,69,96,0.4);
+    color: #ff6b81;
+    background: rgba(233,69,96,0.05);
+  }
+  .result-box .placeholder { color: #3a3a50; font-style: italic; }
 
   .cube-state {
-    background: #0a0a1a;
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 1rem;
+    background: rgba(15,15,23,0.8);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 1.25rem;
     margin-top: 1rem;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 0.85rem;
-    line-height: 1.3;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
     white-space: pre;
     overflow-x: auto;
+    color: #c8c8d8;
   }
 
+  /* Spinner */
   .spinner {
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid #555;
+    border: 2px solid rgba(255,255,255,0.1);
     border-top-color: #e94560;
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
@@ -129,21 +261,39 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* Section spacing */
   .section { margin-bottom: 1.5rem; }
-  .section h3 { color: #e94560; margin-bottom: 0.75rem; font-size: 1rem; }
 
-  .options-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-  .options-row > div { flex: 1; min-width: 120px; }
-
+  /* Count input */
   .count-input {
-    width: 80px;
+    width: 90px;
     display: inline-block;
     margin-bottom: 0;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: #3a3a50;
+    font-size: 0.75rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  footer a {
+    color: #5a5a72;
+    text-decoration: none;
+  }
+  footer a:hover { color: #9a9ab0; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    header { padding: 1.5rem 1rem 1rem; }
+    header h1 { font-size: 1.5rem; }
+    .card { padding: 1.25rem; border-radius: 12px; }
+    .tabs { gap: 0.25rem; flex-wrap: wrap; justify-content: center; }
+    .tab { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+    .options-row { flex-direction: column; gap: 0; }
+    .field-row { flex-direction: column; gap: 0; }
   }
 </style>
 </head>
@@ -151,7 +301,7 @@
 
 <header>
   <h1>Nissy Web</h1>
-  <span>Rubik's Cube Solver</span>
+  <p>Rubik's Cube Solver &amp; FMC Assistant</p>
 </header>
 
 <div class="tabs">
@@ -163,7 +313,7 @@
 <main>
   <!-- SOLVE TAB -->
   <div class="panel active" id="panel-solve">
-    <div class="section">
+    <div class="card">
       <div class="field-row">
         <div>
           <label for="solve-step">Step</label>
@@ -191,9 +341,9 @@
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;padding-top:1.1rem;margin-bottom:1rem;">
-        <input type="checkbox" id="solve-inverse" style="width:auto;margin:0 0.4rem 0 0;">
-        <label for="solve-inverse" style="margin:0;cursor:pointer;">Inverse (-N)</label>
+      <div class="checkbox-row">
+        <input type="checkbox" id="solve-inverse">
+        <label for="solve-inverse">Inverse (-N)</label>
       </div>
 
       <div class="btn-group">
@@ -210,7 +360,7 @@
 
   <!-- SCRAMBLE TAB -->
   <div class="panel" id="panel-scramble">
-    <div class="section">
+    <div class="card">
       <label for="scramble-type">Type</label>
       <select id="scramble-type">
         <option value="">Random state (default)</option>
@@ -235,7 +385,9 @@
         <input type="number" id="scramble-count" class="count-input" min="1" max="100" value="1">
       </label>
 
-      <button id="btn-scramble">Generate Scramble</button>
+      <div class="btn-group">
+        <button id="btn-scramble">Generate Scramble</button>
+      </div>
 
       <div id="scramble-result" class="result-box">
         <span class="placeholder">Generated scrambles will appear here</span>
@@ -245,7 +397,7 @@
 
   <!-- TOOLS TAB -->
   <div class="panel" id="panel-tools">
-    <div class="section">
+    <div class="card">
       <label for="tools-input">Scramble / Moves</label>
       <input type="text" id="tools-input" placeholder="e.g. R U R' U'">
 
@@ -263,6 +415,10 @@
     </div>
   </div>
 </main>
+
+<footer>
+  Powered by <a href="https://github.com/sebastianotronto/nissy-classic" target="_blank" rel="noopener">Nissy</a> by Sebastiano Tronto
+</footer>
 
 <script>
 const $ = s => document.querySelector(s);
