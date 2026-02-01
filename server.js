@@ -20,6 +20,18 @@ function sanitize(input) {
   return trimmed;
 }
 
+function filterWarnings(text) {
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const filtered = [];
+  let inWarning = false;
+  for (const line of lines) {
+    if (line.startsWith('--- Warning ---')) { inWarning = true; continue; }
+    if (line.startsWith('---------------')) { inWarning = false; continue; }
+    if (!inWarning) filtered.push(line);
+  }
+  return filtered.join('\n').trim();
+}
+
 function runNissy(args) {
   return new Promise((resolve, reject) => {
     execFile(NISSY_PATH, args, { timeout: TIMEOUT }, (err, stdout, stderr) => {
@@ -27,20 +39,12 @@ function runNissy(args) {
         if (err.killed) {
           reject(new Error('Process timed out'));
         } else {
-          reject(new Error(stderr || err.message));
+          const msg = filterWarnings(stderr || err.message);
+          reject(new Error(msg || 'Unknown error'));
         }
         return;
       }
-      // Normalize line endings and filter out warning lines
-      const lines = stdout.replace(/\r\n/g, '\n').split('\n');
-      const filtered = [];
-      let inWarning = false;
-      for (const line of lines) {
-        if (line.startsWith('--- Warning ---')) { inWarning = true; continue; }
-        if (line.startsWith('---------------')) { inWarning = false; continue; }
-        if (!inWarning) filtered.push(line);
-      }
-      resolve(filtered.join('\n').trim());
+      resolve(filterWarnings(stdout));
     });
   });
 }
