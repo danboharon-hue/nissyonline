@@ -207,7 +207,7 @@ server.listen(PORT, '0.0.0.0', () => {
 // STEP 2: After a short delay, spawn table generation as a background process
 setTimeout(() => {
   console.log('Starting pruning table generation in background...');
-  const gen = spawn(NISSY_PATH, ['gen', '-t', '2'], {
+  const gen = spawn(NISSY_PATH, ['gen', '-t', '1'], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   gen.stdout.on('data', (d) => process.stdout.write('[gen] ' + d));
