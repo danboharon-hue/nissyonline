@@ -15,8 +15,11 @@ RUN chmod +x /app/nissy
 COPY server.js .
 COPY public/ public/
 
-ENV NISSY_PATH=/app/nissy
-ENV PORT=3000
+RUN mkdir -p /data/nissy
 
-EXPOSE 3000
+ENV NISSY_PATH=/app/nissy
+ENV PORT=8080
+ENV NISSYDATA=/data/nissy
+
+EXPOSE 8080
 CMD ["node", "server.js"]
