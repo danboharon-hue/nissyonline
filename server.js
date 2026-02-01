@@ -191,7 +191,24 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Nissy Web running at http://localhost:${PORT}`);
-  console.log(`Using executable: ${NISSY_PATH}`);
+// Generate pruning tables on startup (with 4 threads) if missing
+function generateTables() {
+  return new Promise((resolve) => {
+    console.log('Checking/generating pruning tables (this may take a while on first run)...');
+    execFile(NISSY_PATH, ['gen', '-t', '4'], { timeout: 0 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('Table generation warning:', stderr || err.message);
+      } else {
+        console.log('Pruning tables ready.');
+      }
+      resolve();
+    });
+  });
+}
+
+generateTables().then(() => {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Nissy Web running at http://localhost:${PORT}`);
+    console.log(`Using executable: ${NISSY_PATH}`);
+  });
 });
