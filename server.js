@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { execFile, spawn } = require('child_process');
+const { execFile } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const NISSY_PATH = process.env.NISSY_PATH || path.join(__dirname, 'nissy');
@@ -10,7 +10,6 @@ const TIMEOUT = 600000;
 // Only allow safe cube notation characters
 const SAFE_INPUT = /^[A-Za-z0-9' ()\-\[\]]*$/;
 
-let tablesReady = false;
 
 function sanitize(input) {
   if (typeof input !== 'string') return '';
@@ -71,17 +70,14 @@ async function handleAPI(req, res) {
   const route = url.pathname;
 
   try {
-    if (route === '/api/status' && req.method === 'GET') {
-      sendJSON(res, 200, { tablesReady });
-      return;
-    }
-
     if (route === '/api/steps' && req.method === 'GET') {
       const output = await runNissy(['steps']);
+      // Filter out steps that require the nxopt31 table (crashes on <8GB RAM)
+      const SKIP = new Set(['optimal', 'light']);
       const steps = output.split('\n')
         .map(line => {
           const match = line.match(/^(\S+)\s+(.+)$/);
-          if (match) return { id: match[1], description: match[2].trim() };
+          if (match && !SKIP.has(match[1])) return { id: match[1], description: match[2].trim() };
           return null;
         })
         .filter(Boolean);
@@ -204,19 +200,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Using executable: ${NISSY_PATH}`);
 });
 
-// STEP 2: After a short delay, spawn table generation as a background process
-setTimeout(() => {
-  console.log('Starting pruning table generation in background...');
-  const gen = spawn(NISSY_PATH, ['gen', '-t', '1'], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  gen.stdout.on('data', (d) => process.stdout.write('[gen] ' + d));
-  gen.stderr.on('data', (d) => process.stderr.write('[gen] ' + d));
-  gen.on('close', (code) => {
-    tablesReady = true;
-    console.log(`Table generation finished (exit ${code}). Tables are now cached on disk.`);
-  });
-  gen.on('error', (err) => {
-    console.error('Failed to start table generation:', err.message);
-  });
-}, 2000);
+// Tables are pre-generated on the persistent volume.
+// The nxopt31 table (for optimal/light steps) requires >8GB RAM to generate
+// and is excluded. All other tables are present.
