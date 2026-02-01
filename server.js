@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const NISSY_PATH = process.env.NISSY_PATH || path.join(__dirname, 'nissy');
@@ -9,6 +9,8 @@ const TIMEOUT = 600000;
 
 // Only allow safe cube notation characters
 const SAFE_INPUT = /^[A-Za-z0-9' ()\-\[\]]*$/;
+
+let tablesReady = false;
 
 function sanitize(input) {
   if (typeof input !== 'string') return '';
@@ -24,7 +26,7 @@ function runNissy(args) {
     execFile(NISSY_PATH, args, { timeout: TIMEOUT }, (err, stdout, stderr) => {
       if (err) {
         if (err.killed) {
-          reject(new Error('Process timed out (30s limit)'));
+          reject(new Error('Process timed out'));
         } else {
           reject(new Error(stderr || err.message));
         }
@@ -196,20 +198,25 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-let tablesReady = false;
-
-// Start server immediately so health checks pass
+// STEP 1: Start HTTP server FIRST so Fly.io health checks pass immediately
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Nissy Web running at http://localhost:${PORT}`);
+  console.log(`Nissy Web running at http://0.0.0.0:${PORT}`);
   console.log(`Using executable: ${NISSY_PATH}`);
+});
 
-  // Generate pruning tables in the background (with multiple threads)
-  console.log('Generating pruning tables in background (this may take a while on first run)...');
-  const gen = execFile(NISSY_PATH, ['gen', '-t', '2'], { timeout: 0 });
-  gen.stdout.on('data', (data) => console.log('[gen]', data.toString().trim()));
-  gen.stderr.on('data', (data) => console.log('[gen]', data.toString().trim()));
+// STEP 2: After a short delay, spawn table generation as a background process
+setTimeout(() => {
+  console.log('Starting pruning table generation in background...');
+  const gen = spawn(NISSY_PATH, ['gen', '-t', '2'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  gen.stdout.on('data', (d) => process.stdout.write('[gen] ' + d));
+  gen.stderr.on('data', (d) => process.stderr.write('[gen] ' + d));
   gen.on('close', (code) => {
     tablesReady = true;
-    console.log(`Pruning table generation finished (exit code ${code}).`);
+    console.log(`Table generation finished (exit ${code}). Tables are now cached on disk.`);
   });
-});
+  gen.on('error', (err) => {
+    console.error('Failed to start table generation:', err.message);
+  });
+}, 2000);
