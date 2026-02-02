@@ -5,7 +5,7 @@ const { execFile } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const NISSY_PATH = process.env.NISSY_PATH || path.join(__dirname, 'nissy');
-const TIMEOUT = 600000;
+const TIMEOUT = 18000000; // 5 hours
 
 // Only allow safe cube notation characters
 const SAFE_INPUT = /^[A-Za-z0-9' ()\-\[\]]*$/;
